@@ -5,16 +5,12 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+	"log"
 	"net/http"
 )
-var movies = Movies{}
-/*
-var movies = Movies{
-		Movie{"sin limites", 2233, "No se"},
-		Movie{"no tengo imaginacion", 2334, "pepe"},
-		Movie{"dos mas dos cinco", 1245, "lalala"},
-	}*/
 var collection = getSession().DB("siacDB").C("movies")
+
 func getSession() *mgo.Session{
 	session, err := mgo.Dial("mongodb://localhost:27017")
 
@@ -30,13 +26,40 @@ func Index(writer http.ResponseWriter, request *http.Request) {
 }
 
 func MovieList(writer http.ResponseWriter, request *http.Request) {
-	json.NewEncoder(writer).Encode(movies)
+	var results []Movie
+	err := collection.Find(nil).Sort("") .All(&results)
+
+	if err != nil {
+		log.Fatal(err)
+		panic(err)
+	} else {
+		fmt.Println("Resultados ", request)
+	}
+	json.NewEncoder(writer).Encode(request)
 }
 
 func MovieShow(writer http.ResponseWriter, request *http.Request) {
 	params := mux.Vars(request) // recogemos todas las variables de la url
 	movie_id := params["id"]
-	fmt.Fprintf(writer, "Has cargado la pelicula numero %s", movie_id)
+
+	if !bson.IsObjectIdHex(movie_id) {
+		writer.WriteHeader(404)
+		return
+	}
+
+	oid := bson.IsObjectIdHex(movie_id)
+
+	results := Movie{}
+
+	err := collection.FindId(oid).One(&results)
+
+	if err != nil {
+		writer.WriteHeader(404)
+		return
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(200)
+	json.NewEncoder(writer).Encode(results)
 }
 
 func MovieAdd(writer http.ResponseWriter, request *http.Request) {
