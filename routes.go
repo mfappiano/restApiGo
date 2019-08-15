@@ -51,4 +51,10 @@ var routes = Routes{
 		pattern:     "/pelicula",
 		HandlerFunc: MovieAdd,
 	},
+	Route{
+		name:        "MovieUpdate",
+		method:      "PUT",
+		pattern:     "/pelicula/{id}",
+		HandlerFunc: MovieUpdate,
+	},
 }
