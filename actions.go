@@ -21,6 +21,18 @@ func getSession() *mgo.Session{
 	return session
 }
 
+func responseMovies(writer http.ResponseWriter, status int, result []Movie){
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(status)
+	json.NewEncoder(writer).Encode(results)
+}
+
+func responseMovie(writer http.ResponseWriter, status int, result Movie){
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(status)
+	json.NewEncoder(writer).Encode(results)
+}
+
 func Index(writer http.ResponseWriter, request *http.Request) {
 	fmt.Fprint(writer, "Hola mundo desde mi server go")
 }
@@ -35,7 +47,7 @@ func MovieList(writer http.ResponseWriter, request *http.Request) {
 	} else {
 		fmt.Println("Resultados ", request)
 	}
-	json.NewEncoder(writer).Encode(request)
+	responseMovies(writer, 200, results)
 }
 
 func MovieShow(writer http.ResponseWriter, request *http.Request) {
@@ -47,7 +59,7 @@ func MovieShow(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	oid := bson.IsObjectIdHex(movie_id)
+	oid := bson.ObjectIdHex(movie_id)
 
 	results := Movie{}
 
@@ -56,10 +68,10 @@ func MovieShow(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		writer.WriteHeader(404)
 		return
+	} else {
+		responseMovie(writer, 404, results)
+
 	}
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(200)
-	json.NewEncoder(writer).Encode(results)
 }
 
 func MovieAdd(writer http.ResponseWriter, request *http.Request) {
@@ -80,8 +92,5 @@ func MovieAdd(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(500)
 		return
 	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(200)
-	json.NewEncoder(writer).Encode(movie_data)
+	responseMovie(writer, 404, movie_data)
 }
