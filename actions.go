@@ -24,13 +24,13 @@ func getSession() *mgo.Session{
 func responseMovies(writer http.ResponseWriter, status int, result []Movie){
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
-	json.NewEncoder(writer).Encode(results)
+	json.NewEncoder(writer).Encode(result)
 }
 
 func responseMovie(writer http.ResponseWriter, status int, result Movie){
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(status)
-	json.NewEncoder(writer).Encode(results)
+	json.NewEncoder(writer).Encode(result)
 }
 
 func Index(writer http.ResponseWriter, request *http.Request) {
@@ -129,4 +129,46 @@ func MovieUpdate(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	responseMovie(writer, 404, movie_data)
+}
+
+type Message struct {
+	Status string 		`json:"status"`
+	Menssage string		`json:"menssage"`
+}
+
+func (this *Message) setStatus(data string)  { // *Message indica que es un puntero y no una copia de la estructura
+	this.Status = data                         // para generar una copia de Message usarlo sin el "*"
+}
+
+func (this *Message) setMessage(data string)  {
+	this.Menssage = data
+}
+
+func MovieDelete(writer http.ResponseWriter, request *http.Request) {
+	params := mux.Vars(request) // recogemos todas las variables de la url
+	movie_id := params["id"]
+
+	if !bson.IsObjectIdHex(movie_id) {
+		writer.WriteHeader(404)
+		return
+	}
+
+	oid := bson.ObjectIdHex(movie_id)
+
+	err := collection.RemoveId(oid)
+
+	if err != nil {
+		writer.WriteHeader(404)
+		return
+	}
+
+	message := new(Message)
+	message.setStatus("success")
+	message.setMessage("La pelicula con id" + movie_id + " ha sido borrada con exito")
+
+	results := message
+	writer.Header().Set("Content-Type", "application/jon")
+	writer.WriteHeader(200)
+	json.NewEncoder(writer).Encode(results)
+
 }

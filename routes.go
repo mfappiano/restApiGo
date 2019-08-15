@@ -57,4 +57,10 @@ var routes = Routes{
 		pattern:     "/pelicula/{id}",
 		HandlerFunc: MovieUpdate,
 	},
+	Route{
+		name:        "MovieDelete",
+		method:      "DELETE",
+		pattern:     "/pelicula/{id}",
+		HandlerFunc: MovieDelete,
+	},
 }
